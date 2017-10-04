@@ -1,89 +1,91 @@
-#include <unistd.h>    //Needed for I2C port
-#include <fcntl.h>     //Needed for I2C port
-#include <sys/ioctl.h> //Needed for I2C port
-#include <linux/i2c-dev.h> //Needed for I2C port
 #include <iostream>
-#include "PCA9685.h" //PCA9685
+#include <wiringPiI2C.h>
+#include <unistd.h>
 #include <stdint.h>
-
 using namespace std;
 
-unsigned char buffer[60] = {0};
 
-    
-void Send(char add1,char  add2,int file_i2c)
+
+
+void leg1(int fd, int position[])
 {
-  //----- write -----
+  int on = 0;
+  //###Leg1
+  wiringPiI2CWriteReg8(fd, 0x06+4*0, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*0, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*0, position[0] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*0, position[0] >> 8);
 
-  buffer[1] = add1;
-  buffer[2] = add2;
-  int length = 2;                 //<<< Number of bytes to write
-  cout<<"Buffer#1: "<<int(buffer[0])<<" Buffer#2: "<<int(buffer[1])<<endl;
-  if (write(file_i2c, buffer, length) != length)              //write() returns the number of bytes actually written, if it doesn't match then an error occurred (e.g. no response from the device)
-  {
-    /* ERROR HANDLING: i2c transaction failed */
-    cout<<"Failed to write to the i2c bus.\n";
-  }
-  //cout<<file_i2c<<endl;
+  wiringPiI2CWriteReg8(fd, 0x06+4*1, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*1, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*1, position[1] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*1, position[1] >> 8);
+
+  wiringPiI2CWriteReg8(fd, 0x06+4*2, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*2, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*2, position[2] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*2, position[2] >> 8);
+
+  //###Leg2
+  wiringPiI2CWriteReg8(fd, 0x06+4*3, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*3, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*3, position[3] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*3, position[3] >> 8);
+
+  wiringPiI2CWriteReg8(fd, 0x06+4*4, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*4, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*4, position[4] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*4, position[4] >> 8);
+
+  wiringPiI2CWriteReg8(fd, 0x06+4*5, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*5, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*5, position[5] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*5, position[5] >> 8);
+
+  //###Leg3
+  wiringPiI2CWriteReg8(fd, 0x06+4*6, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*6, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*6, position[6] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*6, position[6] >> 8);
+
+  wiringPiI2CWriteReg8(fd, 0x06+4*7, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*7, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*7, position[7] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*7, position[7] >> 8);
+
+  wiringPiI2CWriteReg8(fd, 0x06+4*8, on  &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x07+4*8, on  >> 8);
+  wiringPiI2CWriteReg8(fd, 0x08+4*8, position[8] &  0xFF);
+  wiringPiI2CWriteReg8(fd, 0x09+4*8, position[8] >> 8);
+
 
 }
 
-void SetFreq(int freq,int file_i2c)
-{
-  uint8_t prescale_val = (CLOCK_FREQ / 4096 / freq)  - 1;
-  Send(MODE1,0x10,file_i2c); //sleep
-  Send(PRE_SCALE,prescale_val,file_i2c);
-  Send(MODE1,0x80,file_i2c);
-  Send(MODE2,0x04,file_i2c);
-  //cout<<file_i2c<<endl;
-}
+void Set_Freq(int fd)
+{ 
+  uint8_t prescale_val = (25000000/4096/60)-1;
+  wiringPiI2CWriteReg8(fd, 0x00, 0x10);
+  wiringPiI2CWriteReg8(fd, 0xFE, prescale_val);
+  wiringPiI2CWriteReg8(fd, 0x00, 0x00);
+  usleep(500);
+  wiringPiI2CWriteReg8(fd, 0x00, 0x80);
+  wiringPiI2CWriteReg8(fd, 0x01, 0x04);
 
-void SetPWM(uint8_t led, int on_value, int off_value,int file_i2c)
-{
-  cout<<"Start"<<endl;
-  Send(LED0_ON_L + LED_MULTIPLYER * (led - 1), on_value & 0xFF,file_i2c);
-  Send(LED0_ON_H + LED_MULTIPLYER * (led - 1), on_value >> 8,file_i2c);
-  Send(LED0_OFF_L + LED_MULTIPLYER * (led - 1), off_value & 0xFF,file_i2c);
-  Send(LED0_OFF_H + LED_MULTIPLYER * (led - 1), off_value >> 8,file_i2c);
-  //cout<<file_i2c<<endl;
 }
-
 
 int main()
 {
-  int file_i2c;
-  int length;
-
-  //----- OPEN THE I2C BUS -----
-  char *filename = (char*)"/dev/i2c-1";
-  if ((file_i2c = open(filename, O_RDWR)) <0)
+  int fd;
+  int position[9]={375,200,375,375,200,375,375,200,375}; 
+  int zero[9]={0,0,0,0,0,0,0,0,0};
+  fd = wiringPiI2CSetup(0x40);
+  if (fd < 0 )
   {
-    //ERROR HANDLING: you can check errno to see what went wrong
-    cout<<"Failed to open the i2c bus"<<endl;
+    cout<<"Error WiringPi I2C couldn't establish a connection with the system bus."<<endl;
   }
-
-  int addr = 0x40;          //<<<<<The I2C address of the slave
-
-  if (ioctl(file_i2c, I2C_SLAVE, addr) < 0)
-  {
-    cout<<"Failed to acquire bus access and/or talk to slave.\n";
-    //ERROR HANDLING; you can check errno to see what went wrong
-  }
-
-    //----Set mode to 0----//
-  Send(MODE1,0b00010000,file_i2c);
-  Send(MODE1,0b00000000,file_i2c);
-  usleep(5000);
-  Send(MODE2,0b00000100,file_i2c);
-
-
-  //----Set Freq to 60----//
-  SetFreq(60,file_i2c);
-
-  for(int a =0; a<=100; a++)
-  {
-    SetPWM(0,0,375+a,file_i2c);
-    usleep(1000);
-  }
-
+  Set_Freq(fd);
+  cout<< position<<endl;
+  leg1(fd,position);
+  sleep(1);
+  leg1(fd,zero);
 }
